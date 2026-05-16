@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Apple Health Coach — PM Testing Harness</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="layout">
+      <!-- ============== LEFT: PM Control Dashboard ============== -->
+      <aside id="pm-dashboard">
+        <header class="dashboard-header">
+          <span class="dashboard-eyebrow">PM Testing Harness</span>
+          <h1>Stress Signature Control</h1>
+          <p class="dashboard-sub">
+            S9 / S10 Neural Engine simulation. Adjust biometric inputs to
+            preview the on-device signature surfaced to the user.
+          </p>
+        </header>
+
+        <section class="panel">
+          <h2>Macro-Trend Sliders</h2>
+
+          <div class="control">
+            <div class="control-row">
+              <label for="hrv">HRV</label>
+              <span class="control-value" id="hrv-value">50 ms</span>
+            </div>
+            <input id="hrv" type="range" min="0" max="100" value="50" />
+            <div class="control-hint">0 (low recovery) — 100 (high recovery)</div>
+          </div>
+
+          <div class="control">
+            <div class="control-row">
+              <label>Sleep Fragmentation</label>
+              <span class="control-value" id="sleep-value">Low</span>
+            </div>
+            <div class="segment" id="sleep-segment" data-key="sleep">
+              <button data-value="Low" class="active">Low</button>
+              <button data-value="Medium">Medium</button>
+              <button data-value="High">High</button>
+            </div>
+          </div>
+
+          <div class="control">
+            <div class="control-row">
+              <label>Arousal Proxy / Overnight Temp</label>
+              <span class="control-value" id="arousal-value">Normal</span>
+            </div>
+            <div class="segment" id="arousal-segment" data-key="arousal">
+              <button data-value="Normal" class="active">Normal</button>
+              <button data-value="Elevated">Elevated</button>
+            </div>
+          </div>
+
+          <div class="control">
+            <div class="control-row">
+              <label for="calendar-event">Next Calendar Event</label>
+              <span class="control-value" id="calendar-value">None</span>
+            </div>
+            <select id="calendar-event" class="dropdown" aria-label="Next Calendar Event">
+              <option value="none">None</option>
+              <option value="back-to-back">Back-to-back Meetings</option>
+              <option value="deep-work">Deep Work Block</option>
+              <option value="workout">High-Intensity Workout</option>
+            </select>
+            <div class="control-hint">
+              Passed to <code>/api/chat</code> as <code>context.calendarEvent</code> for the upcoming PR-FAQ context-aware nudge narrative.
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>Quick-Inject Scenarios</h2>
+          <div class="scenarios">
+            <button class="scenario" data-scenario="burnout">
+              <strong>3-Day Burnout</strong>
+              <span>Low HRV · High Fragmentation · Elevated Arousal</span>
+            </button>
+            <button class="scenario" data-scenario="optimal">
+              <strong>Optimal Recovery</strong>
+              <span>High HRV · Low Fragmentation · Normal Arousal</span>
+            </button>
+            <button class="scenario" data-scenario="high-arousal">
+              <strong>High Arousal / Low Sleep</strong>
+              <span>Normal HRV · High Fragmentation · Elevated Arousal</span>
+            </button>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>Phase 3: Clinical Export</h2>
+          <button id="export-btn" class="export-btn">
+            Export 30-Day Medical Report
+          </button>
+          <div class="control-hint">
+            Opens the clinician-ready summary keyed off the active Stress Signature.
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>PM Interview Mode</h2>
+          <button id="interview-note-btn" class="note-btn">
+            <span aria-hidden="true">📝</span> Add Interview Note
+          </button>
+          <div class="control-hint">
+            Captures observations to <code>interviews/session_notes.json</code> with a UTC timestamp.
+          </div>
+          <div id="note-status" class="note-status" hidden></div>
+        </section>
+
+        <footer class="dashboard-footer">
+          <span class="signature-pill" id="signature-pill">signature: optimal</span>
+          <span class="intent-pill" id="intent-pill" hidden>intent: greeting</span>
+          <span class="latency-pill" id="latency-pill">latency: — ms</span>
+        </footer>
+      </aside>
+
+      <!-- ============== RIGHT: Apple Watch Simulation ============== -->
+      <main id="watch-stage">
+        <div class="watch">
+          <div class="watch-bezel"></div>
+          <div class="watch-screen" id="watch-screen">
+            <!-- Phase 1 Nudge -->
+            <section class="watch-card" id="nudge-card">
+              <div class="watch-time" id="watch-time">9:41</div>
+              <div class="watch-app">Health</div>
+              <div class="watch-headline" id="nudge-headline">
+                Recovery on Track
+              </div>
+              <p class="watch-body" id="nudge-body">
+                Your stress signature is in your optimal range.
+              </p>
+              <button class="watch-cta" id="nudge-cta">
+                Explore Recovery Options
+              </button>
+            </section>
+
+            <!-- Phase 2 Siri Negotiation -->
+            <section class="watch-card" id="chat-card" hidden>
+              <div class="chat-header">
+                <button class="chat-back" id="chat-back">←</button>
+                <span>Siri</span>
+              </div>
+              <div class="chat-log" id="chat-log"></div>
+              <form class="chat-form" id="chat-form">
+                <button
+                  type="button"
+                  class="chat-mic"
+                  id="chat-mic"
+                  aria-label="Voice input (prototype: simulated)"
+                >
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true">
+                    <path d="M12 14a3 3 0 003-3V5a3 3 0 10-6 0v6a3 3 0 003 3zm5-3a5 5 0 01-10 0H5a7 7 0 006 6.92V21h2v-3.08A7 7 0 0019 11h-2z"/>
+                  </svg>
+                </button>
+                <input
+                  id="chat-input"
+                  type="text"
+                  placeholder="Reply to Siri…"
+                  autocomplete="off"
+                  required
+                />
+                <button type="submit" aria-label="Send">↑</button>
+                <div class="chat-mic-tooltip" id="chat-mic-tooltip" role="status" aria-live="polite">
+                  Voice input simulated. Please type for prototype testing.
+                </div>
+              </form>
+              <p class="chat-disclaimer">
+                Prototype Mode: Type your response. Final product will utilize watchOS Voice Dictation.
+              </p>
+            </section>
+          </div>
+        </div>
+
+        <div class="stage-caption">
+          watchOS simulation · all inference runs locally on S9 / S10
+        </div>
+      </main>
+    </div>
+
+    <!-- ============== Clinical Report Modal ============== -->
+    <div id="report-modal" class="modal-overlay" hidden aria-hidden="true" role="dialog" aria-labelledby="modal-title">
+      <div class="modal-backdrop" data-modal-dismiss></div>
+      <div class="modal-card" role="document">
+        <header class="modal-header">
+          <div>
+            <span class="modal-eyebrow">Clinical Summary · 30-Day Window</span>
+            <h2 id="modal-title">Stress Signature Report</h2>
+          </div>
+          <button class="modal-close" id="modal-close" aria-label="Close report">×</button>
+        </header>
+
+        <section class="modal-section">
+          <h3>7-Day Biometric Correlation</h3>
+          <div class="correlation-wrap">
+            <canvas
+              id="correlation-graph"
+              width="520"
+              height="156"
+              aria-label="7-day biometric correlation graph: HRV, heart rate, and sleep score, with event markers for Heavy Meal and HIIT Workout."
+            ></canvas>
+            <div class="correlation-axis" id="correlation-axis"></div>
+            <div class="correlation-legend" id="correlation-legend">
+              <span class="legend-item"><span class="legend-swatch" data-series="hrv"></span>HRV<span class="legend-unit">ms</span></span>
+              <span class="legend-item"><span class="legend-swatch" data-series="hr"></span>Heart Rate<span class="legend-unit">bpm</span></span>
+              <span class="legend-item"><span class="legend-swatch" data-series="sleep"></span>Sleep<span class="legend-unit">score</span></span>
+              <span class="legend-sep" aria-hidden="true">·</span>
+              <span class="legend-item legend-marker"><span class="marker-tick" data-marker="meal"></span>Heavy Meal</span>
+              <span class="legend-item legend-marker"><span class="marker-tick" data-marker="hiit"></span>HIIT Workout</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="modal-section">
+          <h3>Stress Signature Analysis</h3>
+          <p id="signature-analysis" class="signature-analysis">—</p>
+        </section>
+
+        <section class="modal-section">
+          <h3>Key Metrics (30 d)</h3>
+          <div class="metrics-grid" id="report-metrics"></div>
+        </section>
+
+        <footer class="modal-footer">
+          <p class="modal-disclaimer">
+            For clinical context only; not a medical diagnosis.
+          </p>
+          <button class="modal-secondary" id="modal-download">Download JSON</button>
+        </footer>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

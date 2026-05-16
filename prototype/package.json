@@ -1,0 +1,26 @@
+{
+  "name": "apple-health-coach-prototype",
+  "version": "0.1.0",
+  "description": "MGMT 475 Final — Apple Health Coach prototype. Tests the S9/S10 Neural Engine 'Stress Signature' synthesis as a PM evaluation harness.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "node tests/smoke.js",
+    "eval": "node scripts/eval.js",
+    "eval:smoke": "node scripts/eval.js --limit 5",
+    "eval:safety-fix": "node scripts/eval.js --stratified",
+    "dataset:generate": "node scripts/generate-dataset.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.30.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  },
+  "author": "Jimmy Castano (PM) — MGMT 475",
+  "license": "UNLICENSED",
+  "private": true
+}
